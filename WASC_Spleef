@@ -1,0 +1,381 @@
+package com.github.lyokofirelyte.WASpleef;
+
+import java.util.List;
+
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+import org.bukkit.event.Listener;
+
+import com.github.lyokofirelyte.WASpleef.WASpleefMain;
+
+public class WASC_Spleef implements CommandExecutor, Listener { 
+	
+WASpleefMain plugin;
+
+String WASP = "§aWASpleef §2// §a";
+	
+	public WASC_Spleef(WASpleefMain instance){
+		plugin = instance;
+
+	}
+	
+	
+	@Override 
+	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+		
+		if(cmd.getName().equalsIgnoreCase("spleef") && sender instanceof Player){
+		
+		int spleefArgs = args.length;
+		Player p2 = (Player) sender;
+		String p = p2.getName();
+		
+		switch (spleefArgs){
+			
+			default: sender.sendMessage("§aWASpleef §2// §cTry /spleef help.");
+			break;
+			
+			case 1: case 2:
+				
+			String spleefCommand = args[0];
+				
+				switch (spleefCommand){
+				 
+			    	default: sender.sendMessage("§aWASpleef §2// §cTry /spleef help.");
+			    	break;
+				
+					case "help": 
+
+						sender.sendMessage(new String[] {
+								WASP + "Spleef Help Core",
+								"§1| §a/spleef join §2// §aJoin a spleef game.",
+								"§1| §a/spleef leave §2// §aLeave a spleef game.",
+								"§1| §a/spleef list §2// §aWho is playing?",
+								"§1| §a/spleef start §2// §aStart a spleef game. §2// §cStaff",
+								"§1| §a/spleef stop §2// §aStop a spleef game early. §2// §cStaff",
+								"§1| §a/spleef setarena §2// §aSet the warp point of the arena. §2// §cStaff",
+								"§1| §a/spleef setpoint §2// §aAdd a warp-in point §2// §cStaff",
+						});
+						
+						break;
+						
+					case "join":
+						
+						List<String> spleefPlayers = plugin.datacore.getStringList("Spleef.Players");
+						List<String> spleefRestricted = plugin.datacore.getStringList("Spleef.Restricted");
+
+						
+						if (spleefPlayers.contains(sender.getName())){
+							sender.sendMessage(WASP + "§cYou have already joined spleef!");
+							return true;
+						}
+
+						spleefPlayers.add(sender.getName()); plugin.datacore.set("Spleef.Players", spleefPlayers);
+						spleefRestricted.add(sender.getName()); plugin.datacore.set("Spleef.Restricted", spleefRestricted);
+
+						Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), "warp spleef " + p);
+					//	int spleefPlayerCount = spleefPlayers.size();
+					//	Bukkit.broadcastMessage(WASP + p2.getDisplayName() + " has joined Spleef! §f(§b" + spleefPlayerCount + "§f)");
+						
+							if (spleefPlayers.size() == 1 || spleefPlayers.size() == 0){
+							
+								plugin.datacore.set("Spleef.Display", p2.getDisplayName());
+								plugin.saveYamls();
+								return true;
+							}
+						
+			            String spleefPlayerDisplayList = plugin.datacore.getString("Spleef.Display");
+			            plugin.datacore.set("Spleef.Display", spleefPlayerDisplayList + ", " + p2.getDisplayName());
+						
+						break;
+						
+					case "reload":
+						
+							if (sender.hasPermission("spleef.admin")){
+								
+								plugin.loadYamls();
+								sender.sendMessage(WASP + "Config reloaded!");
+								return true;
+								
+							} else {
+								
+								sender.sendMessage(WASP + "§cYou must be staff to use this command.");
+								
+							}
+							
+						break;
+						
+					case "save":
+						
+							if (sender.hasPermission("spleef.admin")){
+							
+								plugin.saveYamls();
+								plugin.loadYamls();
+								sender.sendMessage(WASP + "Config saved!");
+								return true;
+							
+							} else {
+							
+								sender.sendMessage(WASP + "§cYou must be staff to use this command.");
+							
+							}
+						
+						break;
+						
+					case "clear":
+						
+							if (sender.hasPermission("spleef.admin")){
+							
+								plugin.datacore.set("Spleef", null);
+								plugin.datacore.set("Users", null);
+								plugin.config.set("Spleef.Captain", null);
+								sender.sendMessage(WASP + "Cleared all datacore values.");
+								plugin.saveYamls();
+								plugin.loadYamls();
+								return true;
+							
+							} else {
+							
+								sender.sendMessage(WASP + "§cYou must be staff to use this command.");
+							
+							}
+						
+						break;
+						
+					case "list":
+						
+						List<String> spleefPlayers2 = plugin.datacore.getStringList("Spleef.Players");
+				
+							if (spleefPlayers2.size() == 0){
+								
+								sender.sendMessage(WASP + "There are no players in spleef yet!");
+								return true;
+							
+							}
+		
+						sender.sendMessage(WASP + "Current Spleef Players (" + spleefPlayers2.size() + ")");
+						sender.sendMessage(plugin.datacore.getString("Spleef.Display"));
+				   
+						break;
+						
+					case "leave":
+						
+						List<String> spleefPlayers3 = plugin.datacore.getStringList("Spleef.Players");
+						List<String> spleefRestricted2 = plugin.datacore.getStringList("Spleef.Restricted");
+						Boolean canLeave = plugin.datacore.getBoolean("Spleef.inRound");
+						
+							if (spleefPlayers3.contains(p) == false){
+							
+								sender.sendMessage(WASP + "§cYou are not currently part of a spleef game.");
+								return true;
+							
+							}
+							
+							if (canLeave == false){
+								
+								sender.sendMessage(WASP + "§cYou can't leave in the middle of a round!");
+								return true;
+							}
+							
+							if (spleefRestricted2.contains(p)){
+								
+								spleefRestricted2.remove(p);
+								plugin.datacore.set("Spleef.Restricted", spleefRestricted2);
+								
+							}
+							
+						spleefPlayers3.remove(p);
+						plugin.datacore.set("Spleef.Players", spleefPlayers3);
+						plugin.saveYamls();
+					//	Bukkit.broadcastMessage(WASP + p2.getDisplayName() + " has left Spleef!");
+						
+					break;
+					
+				case "info":
+					
+					List<String> spleefPlayers5 = plugin.datacore.getStringList("Spleef.Players");
+					int round = plugin.datacore.getInt("Spleef.Round");
+					
+					sender.sendMessage(WASP + "Information Panel. List of players @ /spleef list");
+					sender.sendMessage("§1| §aCaptain§f: " + Bukkit.getPlayer(plugin.config.getString("Spleef.Captain")).getDisplayName());
+					sender.sendMessage("§1| §aPlayers§f: " + spleefPlayers5.size());
+					sender.sendMessage("§1| §aRound§f: " + round);
+					
+				break;
+					
+				case "start":
+					
+					if (sender.hasPermission("spleef.admin")){
+						
+						if (plugin.datacore.getBoolean("Spleef.Started")){
+							
+							sender.sendMessage(WASP + "§cSpleef has already started!");
+							return true;
+							
+						}
+						
+						if (plugin.config.getString("Spleef.Captain") == null){
+							
+							sender.sendMessage(WASP + "§cYou don't have a captain set yet!");
+							return true;
+							
+						}
+						
+						
+						List<String> spleefPlayers4 = plugin.datacore.getStringList("Spleef.Players");
+						int pointAmount = plugin.config.getInt("Spleef.Points");
+						
+						if (pointAmount < spleefPlayers4.size()){
+							
+							sender.sendMessage(WASP + "§cYou don't have enough points set for everyone. Set more!");
+							return true;
+							
+						}
+						
+						
+						plugin.datacore.set("Spleef.Started", true);
+						plugin.datacore.set("Spleef.Round", 1);
+						
+					} else {
+						
+						sender.sendMessage(WASP + "§cYou must be staff to use this command.");
+						
+					}
+					
+					break;
+					
+				case "setcaptain":
+					
+					if (sender.hasPermission("spleef.admin")){
+						
+			
+							if (args.length != 2){
+							
+								sender.sendMessage(WASP + "§cYou must type /spleef setcaptain <player>");
+								return true;
+							
+							}
+						
+							if (Bukkit.getPlayer(args[1]) == null){
+							
+								sender.sendMessage(WASP + "§cThat player is not online or you spelled it wrong!");
+								return true;
+							
+							}
+							
+						String spleefCaptain = plugin.config.getString("Spleef.Captain");
+						
+						if (spleefCaptain != null){
+							
+							sender.sendMessage(WASP + "§cThere is already a captain set!");
+							return true;
+							
+						}
+						
+						plugin.config.set("Spleef.Captain", args[1]);
+						sender.sendMessage(WASP + "Captain set to " + Bukkit.getPlayer(args[1]).getDisplayName() + "!");
+					
+					} else {
+						
+						sender.sendMessage(WASP + "§cYou must be staff to use this command.");
+					
+					}
+					
+					break;
+					
+				case "activate":
+					
+					if (sender.hasPermission("spleef.admin")){
+						
+						plugin.config.set("Spleef.Active", true);
+						sender.sendMessage(WASP + "Spleef active.");
+						return true;
+						
+					} else {
+						
+						sender.sendMessage(WASP + "§cYou must be staff to use this command.");
+					
+					}
+				
+					break;
+					
+				case "deactivate":
+					
+					if (sender.hasPermission("spleef.admin")){
+						
+						plugin.config.set("Spleef.Active", false);
+						sender.sendMessage(WASP + "Spleef inactive.");
+						return true;
+						
+					} else {
+						
+						sender.sendMessage(WASP + "§cYou must be staff to use this command.");
+					
+					}
+				
+					break;
+					
+				case "setpoint":
+					
+					if (sender.hasPermission("spleef.admin")){
+						
+						int spleefPoints = plugin.config.getInt("Spleef.Points");
+						int currentPoint = spleefPoints + 1;
+						plugin.config.set("Spleef.Points", currentPoint);
+						plugin.config.set("Spleef.World", p2.getLocation().getWorld().getName());
+						plugin.config.set("Spleef.X" + currentPoint, p2.getLocation().getBlockX());
+						plugin.config.set("Spleef.Y" + currentPoint, p2.getLocation().getBlockY());
+					    plugin.config.set("Spleef.Z" + currentPoint, p2.getLocation().getBlockZ());
+					    plugin.config.set("Spleef.Yaw" + currentPoint, p2.getLocation().getYaw());
+					    plugin.config.set("Spleef.Pitch" + currentPoint, p2.getLocation().getPitch());
+					    sender.sendMessage(WASP + "Created point " + currentPoint + ".");
+					    return true;
+					
+					} else {
+					
+						sender.sendMessage(WASP + "§cYou must be staff to use this command.");
+					
+					}
+				
+					break;
+				
+				case "tptest":
+					
+					int x = plugin.config.getInt("Spleef.X1");
+					int y = plugin.config.getInt("Spleef.Y1");
+					int z = plugin.config.getInt("Spleef.Z1");
+					int yaw = plugin.config.getInt("Spleef.Yaw1");
+					int pitch = plugin.config.getInt("Spleef.Pitch1");
+					World spleefWorld = Bukkit.getWorld(plugin.config.getString("Spleef.World"));
+					Location spleefTp = new Location(spleefWorld, x, y, z, yaw, pitch);
+					p2.teleport(spleefTp);
+					
+					break;
+				
+				}
+		
+		
+		
+		}
+		
+		
+		
+		return true;
+		}
+		
+return true;
+
+
+	}
+
+
+	
+
+	
+}
+
+
