@@ -1,0 +1,221 @@
+package com.github.lyokofirelyte.WASpleef;
+
+
+
+import java.util.List;
+
+import org.bukkit.Bukkit;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+import com.github.lyokofirelyte.WASpleef.WASpleefMain;
+
+public class WASC_SpleefFall implements CommandExecutor{
+
+	WASpleefMain plugin;
+	
+	public WASC_SpleefFall(WASpleefMain instance){
+	plugin = instance;
+
+	}
+	
+	String WASP = "§aWASpleef §2// §a";
+	
+	
+	@Override 
+	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+		
+		// Area Trigger calls this command.
+		
+		if(cmd.getName().equalsIgnoreCase("spleeffall") && sender instanceof Player && plugin.datacore.getStringList("Spleef.Players").contains(sender.getName()) && plugin.datacore.getBoolean("Spleef.FallReady")){
+			
+			List<String> spleefPlayers = plugin.datacore.getStringList("Spleef.Players");
+	
+			List<String> spleefPlayersRemaining = plugin.datacore.getStringList("Spleef.RemainingPlayers");
+			
+				if (spleefPlayersRemaining.size() == 2){
+					
+					// We're all done. Let's check who won and stuff.
+					
+					plugin.datacore.set("Spleef.FallReady", false);
+					spleefPlayersRemaining.remove(sender.getName());
+					plugin.datacore.set("Spleef.RemainingPlayers", spleefPlayersRemaining);
+					List<String> spleefPlayersRemaining2 = plugin.datacore.getStringList("Spleef.RemainingPlayers");
+					
+						for (String spleefWinner : spleefPlayersRemaining2){
+							
+							
+							int points = plugin.datacore.getInt("Users." + Bukkit.getPlayer(spleefWinner).getName() + ".Points");
+							plugin.datacore.set("Users." + Bukkit.getPlayer(spleefWinner).getName() + ".Points", points + 1);
+							
+							if (plugin.datacore.getInt("Spleef.Round") == 7){
+								
+								finalRound();
+								return true;
+								
+							}
+							
+							
+								for (String currentPlayer : spleefPlayers){
+										
+									Bukkit.getPlayer(currentPlayer).sendMessage(WASP + Bukkit.getPlayer(spleefWinner).getDisplayName() + " has won this round!");
+									Bukkit.getPlayer(currentPlayer).sendMessage(WASP + "Type READY in your chat when you are ready for the next round.");
+								}
+							
+						}
+						
+					spleefSetup();	
+					
+					
+					return true;
+				}
+				
+			spleefPlayersRemaining.remove(sender.getName());
+			plugin.datacore.set("Spleef.RemainingPlayers", spleefPlayersRemaining);
+	
+
+		}
+	
+	return true;
+	
+}
+	
+	public void spleefSetup(){
+		
+		// Let's set this bitch up for the next round!
+		
+		List<String> spleefPlayersRemaining = plugin.datacore.getStringList("Spleef.RemainingPlayers");
+		List<String> spleefPlayers = plugin.datacore.getStringList("Spleef.Players");
+		int round = plugin.datacore.getInt("Spleef.Round");
+		plugin.config.set("Spleef.Active", true);
+		plugin.datacore.set("Spleef.inRound", false);
+		plugin.datacore.set("Spleef.Round", round + 1);
+		
+		// We're moving everyone back to the remaining list.
+		
+		for (String spleefTransfer : spleefPlayers){
+			
+			if (!spleefPlayersRemaining.contains(spleefTransfer)){
+				
+			
+			spleefPlayersRemaining.add(spleefTransfer);
+			plugin.datacore.set("Spleef.RemainingPlayers", spleefPlayersRemaining);
+			
+			}
+
+		}
+		
+
+		
+	}
+	
+	public void finalRound(){
+		
+		// The last round stuff. Let's reset the highest point and check for higher points from player's scores.
+		
+		List<String> spleefPlayers = plugin.datacore.getStringList("Spleef.Players");
+		List<String> winningPlayers = plugin.datacore.getStringList("Spleef.TieList");
+		List<String> finalList = plugin.datacore.getStringList("Spleef.FinalList");
+		plugin.datacore.set("Spleef.FinalList", null);
+		plugin.datacore.set("Spleef.TieList", null);
+		plugin.datacore.set("Spleef.MaxPoint", 0);
+		plugin.config.set("Spleef.Active", false);
+		
+		// Looping around everyone's points and collecting a list of temporary winners.
+		
+		for (String pointChecker : spleefPlayers){
+			
+			int highestPoint = plugin.datacore.getInt("Users." + pointChecker + ".Points");
+			int maxPoint = plugin.datacore.getInt("Spleef.MaxPoint");
+			
+			if (highestPoint > maxPoint){
+				
+				plugin.datacore.set("Spleef.MaxPoint", highestPoint);
+				plugin.datacore.set("Spleef.MaxPointUser", pointChecker);
+				
+			}
+			
+			// Here's where ties come in... Let's make a fancy list!
+			
+			if (highestPoint == maxPoint){
+				
+				winningPlayers.add(pointChecker);
+				plugin.datacore.set("Spleef.TieList", winningPlayers);
+				
+			}
+			
+		}
+		
+		// At this point there's some lower people on the tie list. Let's filter them out.
+		
+		
+		for (String tieChecker : winningPlayers){
+			
+			int highestPoint = plugin.datacore.getInt("Users." + tieChecker + ".Points");
+			int maxPoint = plugin.datacore.getInt("Spleef.MaxPoint");
+			
+			if (highestPoint > maxPoint){
+				
+				plugin.datacore.set("Spleef.MaxPoint", highestPoint);
+				plugin.datacore.set("Spleef.MaxPointUser", tieChecker);
+				winningPlayers.remove(tieChecker);
+				plugin.datacore.set("Spleef.TieList", winningPlayers);
+				
+			}
+			
+		}
+		
+		// Ok, we've removed the greater winners from the tie list, so now they're all ACTUALLY ties.
+		// Now we're going to check to see if the person in the max winner slot is also a tie.
+		
+		for (String possibleWinner : winningPlayers){
+			
+			int highestPoint = plugin.datacore.getInt("Users." + possibleWinner + ".Points");
+			int maxPoint = plugin.datacore.getInt("Spleef.MaxPoint");
+			
+			
+			if (highestPoint == maxPoint){
+				
+				finalList.add(possibleWinner);
+				plugin.datacore.set("Spleef.FinalList", finalList);
+	
+			}
+			
+			
+		}
+		
+		// And finally, add the top person him/herself to the winner list.
+		
+		finalList.add(plugin.datacore.getString("Spleef.MaxPointUser"));
+		plugin.datacore.set("Spleef.FinalList", finalList);
+		
+		// All winners are now in the final list. Let's pay them.
+     
+	            	for (String spleefDisplayTransfer : finalList){
+	            		
+	            			String spleefPlayerDisplayList = plugin.datacore.getString("Spleef.FinalDisplay");
+				            plugin.datacore.set("Spleef.FinalDisplay", spleefPlayerDisplayList + ", " + Bukkit.getPlayer(spleefDisplayTransfer).getDisplayName());
+				            Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), "eco give " + spleefDisplayTransfer + " 7000");
+				            
+	            	}
+	            
+	            
+	            String spleefPlayerDisplayList = plugin.datacore.getString("Spleef.FinalDisplay").replaceAll("null,", "");
+	            
+				Bukkit.broadcastMessage(WASP + "The winners are " + spleefPlayerDisplayList);
+			
+				// Clean house
+				
+				plugin.datacore.set("Spleef", null);
+				plugin.datacore.set("Users", null);
+				plugin.config.set("Spleef.Captain", null);
+				plugin.saveYamls();
+				plugin.loadYamls();
+				
+			}
+		
+	}
+	
+	
+
