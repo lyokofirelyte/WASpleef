@@ -1,0 +1,374 @@
+package com.github.lyokofirelyte.WASpleef;
+
+import java.util.List;
+
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
+import com.github.lyokofirelyte.WASpleef.WASpleefMain;
+
+
+
+public class WASpleefChat implements Listener {
+	
+	WASpleefMain plugin;
+	
+	public WASpleefChat(WASpleefMain instance){
+	plugin = instance;
+
+	}
+	
+	String WASP = "§aWASpleef §2// §a";
+	
+	
+	
+	@EventHandler(priority = EventPriority.NORMAL)
+	public void onCommandPreprocess(AsyncPlayerChatEvent event) { 
+		
+		
+		
+		if (plugin.config.getBoolean("Spleef.Active")){
+		
+		List<String> spleefPlayers = plugin.datacore.getStringList("Spleef.Players");
+		Boolean started = plugin.datacore.getBoolean("Spleef.Started");
+		Boolean inRound = plugin.datacore.getBoolean("Spleef.inRound");
+		List<String> ready = plugin.datacore.getStringList("Spleef.Ready");  
+		String captain = plugin.config.getString("Spleef.Captain");
+		Boolean matWarn = plugin.datacore.getBoolean("Spleef.MatWarn");
+		
+		if (ready.size() == spleefPlayers.size() -1){
+			
+			if (matWarn == false){
+				
+				plugin.datacore.set("Spleef.MatWarn", true);
+				
+				for (String currentPlayer : spleefPlayers){
+				
+				Bukkit.getPlayer(currentPlayer).sendMessage(WASP + "Everyone's ready! §eSPLEEF CAPTAIN! §aType in the material we shall use for this round!");
+				
+				}
+				
+				
+				spleefSetup();		
+				plugin.config.set("Spleef.Active", true);
+				event.setCancelled(true);
+				
+				return;
+			}
+			
+			
+			if (event.getPlayer().getName().equalsIgnoreCase(captain) && matWarn){
+				
+					switch (event.getMessage()){
+				
+						default: event.getPlayer().sendMessage(WASP + "Type snow, hell, grass, ice, wool, superslow, glass, leaf, doublesnow, doubleleaf," +
+								" snowleaf, grassleaf, doublesnowleaf, doublegrassleaf, triplesnow, woolcake, or wood.");
+							plugin.datacore.set("Spleef.Material", null);
+							event.setCancelled(true);
+							return;
+
+					
+						case "snow":
+						
+						    plugin.datacore.set("Spleef.MatLevel", 1);
+							plugin.datacore.set("Spleef.Material", "snowblock"); 
+							event.setCancelled(true);
+							break;
+							
+						case "woolcake":
+							
+						    plugin.datacore.set("Spleef.MatLevel", 2);
+							plugin.datacore.set("Spleef.Material", "cake"); 
+							plugin.datacore.set("Spleef.Material2", "wool"); 
+							event.setCancelled(true);
+							break;
+							
+						case "triplesnow":
+							
+						    plugin.datacore.set("Spleef.MatLevel", 3);
+							plugin.datacore.set("Spleef.Material", "snowblock"); 
+							plugin.datacore.set("Spleef.Material2", "snowblock"); 
+							plugin.datacore.set("Spleef.Material3", "snowblock");  
+							event.setCancelled(true);
+							break;
+							
+						case "wood":
+							
+						    plugin.datacore.set("Spleef.MatLevel", 1);
+							plugin.datacore.set("Spleef.Material", "log"); 
+							event.setCancelled(true);
+							break;
+							
+						case "doubleleaf":
+							
+						    plugin.datacore.set("Spleef.MatLevel", 2);
+							plugin.datacore.set("Spleef.Material", "leaves"); 
+							plugin.datacore.set("Spleef.Material2", "leaves"); 
+							event.setCancelled(true);
+							break;
+							
+						case "doublesnowleaf":
+							
+						    plugin.datacore.set("Spleef.MatLevel", 2);
+							plugin.datacore.set("Spleef.Material", "50%snowblock,50%leaves"); 
+							plugin.datacore.set("Spleef.Material2", "50%snowblock,50%leaves"); 
+							event.setCancelled(true);
+							break;
+							
+						case "doublegrassleaf":
+							
+						    plugin.datacore.set("Spleef.MatLevel", 2);
+							plugin.datacore.set("Spleef.Material", "50%grass,50%leaves"); 
+							plugin.datacore.set("Spleef.Material2", "50%grass,50%leaves"); 
+							event.setCancelled(true);
+							break;
+							
+						case "leaf":
+							
+						    plugin.datacore.set("Spleef.MatLevel", 1);
+							plugin.datacore.set("Spleef.Material", "leaves"); 
+							event.setCancelled(true);
+							break;
+							
+						case "snowleaf":
+							
+						    plugin.datacore.set("Spleef.MatLevel", 1);
+							plugin.datacore.set("Spleef.Material", "50%snowblock,50%leaves"); 
+							event.setCancelled(true);
+							break;
+							
+						case "grassleaf":
+							
+						    plugin.datacore.set("Spleef.MatLevel", 1);
+							plugin.datacore.set("Spleef.Material", "50%grass,50%leaves"); 
+							event.setCancelled(true);
+							break;
+							
+						case "doublesnow":
+							
+						    plugin.datacore.set("Spleef.MatLevel", 2);
+							plugin.datacore.set("Spleef.Material", "snowblock"); 
+							plugin.datacore.set("Spleef.Material2", "snowblock"); 
+							event.setCancelled(true);
+							break;
+
+						case "hell": 
+						
+							plugin.datacore.set("Spleef.MatLevel", 2);
+							plugin.datacore.set("Spleef.Material", "10%fire,90%air"); 
+							plugin.datacore.set("Spleef.Material2", "nether"); 
+							event.setCancelled(true);
+							break;
+							
+						case "grass":
+						
+							plugin.datacore.set("Spleef.MatLevel", 1);
+							plugin.datacore.set("Spleef.Material", "grass");  
+							event.setCancelled(true);
+							break;
+						
+						case "ice":
+						
+							plugin.datacore.set("Spleef.MatLevel", 1);
+							plugin.datacore.set("Spleef.Material", "ice");  
+							event.setCancelled(true);
+							break;
+						
+						case "wool":
+						
+							plugin.datacore.set("Spleef.MatLevel", 1);
+							plugin.datacore.set("Spleef.Material", "white,red,blue,orange,purple,green,lightgreen,lightblue,pink,black"); 
+							event.setCancelled(true);
+							break;
+						
+						case "superslow":
+						
+							plugin.datacore.set("Spleef.MatLevel", 3);
+							plugin.datacore.set("Spleef.Material", "soulsand"); 
+							plugin.datacore.set("Spleef.Material2", "ice"); 
+							plugin.datacore.set("Spleef.Material3", "web");  
+							event.setCancelled(true);
+							break;
+						
+						case "glass":
+						
+							plugin.datacore.set("Spleef.MatLevel", 1);
+							plugin.datacore.set("Spleef.Material", "glasspane"); 
+
+							event.setCancelled(true);
+							break;
+					
+				
+				
+				
+			
+					}
+				
+				if (event.getPlayer().isOp()){
+					
+					plugin.datacore.set("Users." + event.getPlayer().getName() + ".isOp", true);				
+					
+				}
+				
+					event.getPlayer().setOp(true);
+				    int matLevel2 = plugin.datacore.getInt("Spleef.MatLevel");
+				
+					switch (matLevel2){
+					
+						default: 
+							
+							event.getPlayer().sendMessage("SOMETHING WENT WRONG GOD DAMNIT EVERTHING'S BROKEN AHHAHAHA SHIT");		
+							break;
+					
+						case 1:
+							
+							String material2 = plugin.datacore.getString("Spleef.Material");
+							clearArena(event.getPlayer());
+							Bukkit.getServer().dispatchCommand(event.getPlayer(), "rg select spleef");
+							Bukkit.getServer().dispatchCommand(event.getPlayer(), "/set " + material2);
+							break;
+							
+						case 2: 
+					
+							String material3 = plugin.datacore.getString("Spleef.Material");
+							String material4 = plugin.datacore.getString("Spleef.Material2");
+							clearArena(event.getPlayer());
+							Bukkit.getServer().dispatchCommand(event.getPlayer(), "rg select spleef");
+							Bukkit.getServer().dispatchCommand(event.getPlayer(), "/shift 1 d");
+							Bukkit.getServer().dispatchCommand(event.getPlayer(), "/set " + material4);
+							Bukkit.getServer().dispatchCommand(event.getPlayer(), "/shift 1 u");
+							Bukkit.getServer().dispatchCommand(event.getPlayer(), "/set " + material3);
+							break;
+							
+							
+						case 3: 
+							
+							String material5 = plugin.datacore.getString("Spleef.Material");
+							String material6 = plugin.datacore.getString("Spleef.Material2");
+							String material7 = plugin.datacore.getString("Spleef.Material3");
+							clearArena(event.getPlayer());
+							Bukkit.getServer().dispatchCommand(event.getPlayer(), "rg select spleef");
+							Bukkit.getServer().dispatchCommand(event.getPlayer(), "/shift 2 d");
+							Bukkit.getServer().dispatchCommand(event.getPlayer(), "/set " + material7);
+							Bukkit.getServer().dispatchCommand(event.getPlayer(), "/shift 1 u");
+							Bukkit.getServer().dispatchCommand(event.getPlayer(), "/set " + material6);
+							Bukkit.getServer().dispatchCommand(event.getPlayer(), "/shift 1 u");
+							Bukkit.getServer().dispatchCommand(event.getPlayer(), "/set " + material5);
+							break;
+					}
+				
+				if (plugin.datacore.getBoolean("Users." + event.getPlayer().getName() + ".isOp") == false){
+					event.getPlayer().setOp(false);
+				}
+				
+				
+					for (String currentPlayer : spleefPlayers){
+				
+					Bukkit.getPlayer(currentPlayer).sendMessage(WASP + event.getMessage() + ChatColor.GREEN + " was choosen!");
+				
+					}
+				
+				spleefTeleport();
+				spleefSetup();
+				plugin.datacore.set("Spleef.Ready", null);
+				plugin.datacore.set("Spleef.ReadyForNext", true);
+				plugin.config.set("Spleef.Active", false);
+				plugin.datacore.set("Spleef.inRound", true);
+				plugin.datacore.set("Spleef.MatWarn", false);
+				
+			}
+			
+			return;
+		
+		}
+		
+		
+		if (started == true && inRound == false && event.getMessage().equalsIgnoreCase("ready") && !ready.contains(event.getPlayer().getName()) && spleefPlayers.contains(event.getPlayer().getName())){
+			
+			event.setCancelled(true);
+			ready.add(event.getPlayer().getName());
+			plugin.datacore.set("Spleef.Ready", ready);
+			
+				for (String currentPlayer : spleefPlayers){
+			
+				Bukkit.getPlayer(currentPlayer).sendMessage("§7§o" + event.getPlayer().getDisplayName() + " §7§ois ready for the next round. (" + ready.size() + "§7§o/" + spleefPlayers.size() + "§7§o)");
+				
+				}
+		}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	}
+	}
+	
+	
+	private void clearArena(Player player) {
+		
+		Bukkit.getServer().dispatchCommand(player, "/rg select spleef");
+		Bukkit.getServer().dispatchCommand(player, "/expand 2 d");
+		Bukkit.getServer().dispatchCommand(player, "/set 0");
+		
+		
+	}
+
+
+	public void spleefSetup(){
+		
+		List<String> spleefPlayersRemaining = plugin.datacore.getStringList("Spleef.RemainingPlayers");
+		List<String> spleefPlayers = plugin.datacore.getStringList("Spleef.Players");
+		
+		for (String spleefTransfer : spleefPlayers){
+			
+			if (!spleefPlayersRemaining.contains(spleefTransfer)){
+			
+			spleefPlayersRemaining.add(spleefTransfer);
+			plugin.datacore.set("Spleef.RemainingPlayers", spleefPlayersRemaining);
+			
+			}
+		}
+		
+	}
+	
+	
+	public void spleefTeleport(){
+		
+		List<String> spleefPlayers4 = plugin.datacore.getStringList("Spleef.Players");
+		int pointAmount = plugin.config.getInt("Spleef.Points");
+		plugin.datacore.set("Spleef.FallReady", true);
+		
+		for (String currentPlayer : spleefPlayers4){
+	
+				int x = plugin.config.getInt("Spleef.X" + pointAmount);
+				int y = plugin.config.getInt("Spleef.Y" + pointAmount);
+				int z = plugin.config.getInt("Spleef.Z" + pointAmount);
+				int yaw = plugin.config.getInt("Spleef.Yaw" + pointAmount);
+				int pitch = plugin.config.getInt("Spleef.Pitch" + pointAmount);
+				World spleefWorld = Bukkit.getWorld(plugin.config.getString("Spleef.World"));
+				Location spleefTp = new Location(spleefWorld, x, y, z, yaw, pitch);
+				Bukkit.getPlayer(currentPlayer).teleport(spleefTp);
+			    pointAmount--;
+			    Bukkit.getPlayer(currentPlayer).sendMessage(WASP + "BEGIN! KILL EVERYONE!#@%");
+					
+			}
+				
+		
+		}
+		
+
+		
+	}
+
